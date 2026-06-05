@@ -4,6 +4,7 @@
   "description": "Hakobyan LLC Bot",
   "main": "index.js",
   "scripts": {
+    "postinstall": "npx puppeteer browsers install chrome",
     "start": "node index.js"
   },
   "dependencies": {
