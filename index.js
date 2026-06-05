@@ -52,21 +52,6 @@ let contactInfo = `📍 *Office Address:* Erebuni 3 Street, Armenia\n📞 *Offic
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Helper function to extract phone number from WhatsApp ID
-function extractPhoneNumber(whatsappId) {
-    if (!whatsappId) return '';
-    // Extract the phone number part before @c.us or @g.us
-    const match = whatsappId.match(/^(\d+)/);
-    return match ? match[1] : whatsappId;
-}
-
-// Helper function to verify if sender is master admin
-function isMasterAdmin(sender) {
-    const MASTER_ADMIN_PHONE = '37494290481';
-    const senderPhone = extractPhoneNumber(sender);
-    return senderPhone === MASTER_ADMIN_PHONE;
-}
-
 // توليد الرمز كرابط صورة بدلاً من طباعته مكسوراً في السجلات
 client.on('qr', (qr) => {
     latestQR = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`;
@@ -81,58 +66,46 @@ client.on('ready', () => {
     latestQR = ''; // إخفاء الرمز بعد نجاح الاتصال
 });
 
-// لوحة التحكم بالبوت من الواتساب - Robust Admin Command Handler
+// 🛠️ لوحة التحكم الذكية والمصلحة بالبوت من الواتساب
 client.on('message_create', async (msg) => {
-    // Get sender ID from direct chat (msg.from) or group chat (msg.author)
-    const sender = msg.author || msg.from;
-    
-    // Verify if sender is the master admin using flexible phone number matching
-    if (!isMasterAdmin(sender)) {
-        console.log(`[⛔] Unauthorized command attempt from: ${sender}`);
-        return;
+    // التقاط المعرف الحقيقي للمرسل سواء كان الشات فردي أو جماعي
+    const senderId = msg.author || msg.from || '';
+
+    // التحقق الذكي: هل النص يحتوي على رقم المدير (37494290481)؟
+    // استخدمنا .includes لضمان التقاط الرقم وتخطي أي لخبطة بين From و Author
+    if (!senderId.includes('37494290481')) return;
+
+    // تشغيل الأوامر بأمان بعد التأكد من هوية المدير
+    if (msg.body.trim().startsWith('!addjob ')) {
+        const newJob = msg.body.replace('!addjob ', '').trim();
+        if (newJob.length === 0) {
+            await msg.reply('❌ *Error:* Please provide a job vacancy description.');
+            return;
+        }
+        currentJobs.push(`🔹 ${newJob}`);
+        await msg.reply('✅ *Success:* New job vacancy added!');
+        console.log(`[+] Job added: ${newJob}`);
     }
-    
-    console.log(`[✅] Admin command received from master admin: ${msg.body}`);
-    
-    try {
-        // Command: !addjob
-        if (msg.body.startsWith('!addjob ')) {
-            const newJob = msg.body.replace('!addjob ', '').trim();
-            if (newJob.length === 0) {
-                await msg.reply('❌ *Error:* Please provide a job vacancy description.');
-                return;
-            }
-            currentJobs.push(`🔹 ${newJob}`);
-            await msg.reply('✅ *Success:* New job vacancy added!');
-            console.log(`[+] Job added: ${newJob}`);
-        }
-        // Command: !clearjobs
-        else if (msg.body === '!clearjobs') {
-            currentJobs = [];
-            await msg.reply('🧹 *Success:* All old vacancies deleted.');
-            console.log('[+] All jobs cleared');
-        }
-        // Command: !attack
-        else if (msg.body === '!attack') {
-            await msg.reply('⚔️ Launching group invasion...');
-            console.log('[+] Medusa Invasion launched by admin!');
-            runMedusaInvasion();
-        }
-        // Command: !help
-        else if (msg.body === '!help') {
-            const helpText = `📋 *Medusa Fleet v2 - Admin Commands:*\n\n` +
-                           `!addjob <description> - Add a new job vacancy\n` +
-                           `!clearjobs - Clear all job vacancies\n` +
-                           `!attack - Launch group invasion with current jobs\n` +
-                           `!help - Show this help message`;
-            await msg.reply(helpText);
-        }
-        else {
-            await msg.reply('❌ *Unknown command.* Type !help for available commands.');
-        }
-    } catch (error) {
-        console.error('Error processing admin command:', error);
-        await msg.reply('❌ *Error:* Failed to process command. Check bot logs.');
+
+    if (msg.body.trim() === '!clearjobs') {
+        currentJobs = [];
+        await msg.reply('🧹 *Success:* All old vacancies deleted.');
+        console.log('[+] All jobs cleared');
+    }
+
+    if (msg.body.trim() === '!attack') {
+        await msg.reply('⚔️ Launching group invasion...');
+        console.log('[+] Medusa Invasion launched by admin!');
+        runMedusaInvasion();
+    }
+
+    if (msg.body.trim() === '!help') {
+        const helpText = `📋 *Medusa Fleet v2 - Admin Commands:*\n\n` +
+                       `!addjob <description> - Add a new job vacancy\n` +
+                       `!clearjobs - Clear all job vacancies\n` +
+                       `!attack - Launch group invasion with current jobs\n` +
+                       `!help - Show this help message`;
+        await msg.reply(helpText);
     }
 });
 
