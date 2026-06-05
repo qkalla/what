@@ -1,16 +1,26 @@
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const cron = require('node-cron');
-const qrcode = require('qrcode-terminal');
 const express = require('express');
 
 const app = express();
+let latestQR = ''; // لتخزين الرمز كصورة
 
-// 🌐 تفعيل الرابط الأساسي ليعرض حالة البوت بشكل صحيح على الإنترنت
+// 🌐 عند فتح رابط موقعك، ستجد الـ QR Code نظيفاً ومثلياً أمامك تماماً!
 app.get('/', (req, res) => {
-    res.send('<h1>🚀 Hakobyan LLC - Medusa Fleet v2 is Online & Active!</h1>');
+    if (latestQR) {
+        res.send(`
+            <div style="text-align: center; font-family: Arial, sans-serif; margin-top: 50px;">
+                <h2>🚀 Hakobyan LLC - Medusa Fleet v2</h2>
+                <p style="color: green; font-weight: bold;">Scan this perfect QR Code with your WhatsApp now:</p>
+                <img src="${latestQR}" style="border: 10px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; height: 300px;" />
+                <p style="margin-top: 20px; color: #666;">Refresh the page if the code expires.</p>
+            </div>
+        `);
+    } else {
+        res.send('<h1 style="text-align: center; margin-top: 50px;">🚀 Medusa Fleet is Online. Generating QR Code, please refresh in 10 seconds...</h1>');
+    }
 });
 
-// تفعيل منفذ السيرفر المخصص لـ Render
 const port = process.env.PORT || 8080;
 app.listen(port, '0.0.0.0', () => {
     console.log(`Web Monitor Active on port ${port}`);
@@ -31,7 +41,7 @@ const client = new Client({
     }
 });
 
-// 📊 قائمة الوظائف الحالية لشركة Hakobyan LLC
+// قائمة الوظائف الحالية
 let currentJobs = [
     "🔹 *Vacancy 1:* Laundry Workers & Hotel Room Cleaners (7,000 AMD Daily).",
     "🔹 *Vacancy 2:* Construction Helpers & Kitchen Staff (Fixed Shifts available).",
@@ -42,20 +52,23 @@ let contactInfo = `📍 *Office Address:* Erebuni 3 Street, Armenia\n📞 *Offic
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// توليد الرمز كرابط صورة بدلاً من طباعته مكسوراً في السجلات
 client.on('qr', (qr) => {
+    latestQR = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`;
     console.log('===========================================================');
-    console.log('SCAN THIS QR CODE WITH YOUR IPHONE (SECOND NUMBER) NOW:');
+    console.log('🔗 QR CODE GENERATED SUCCESSFULLY!');
+    console.log(`👉 OPEN THIS LINK TO SCAN: https://whatybot.onrender.com`);
     console.log('===========================================================');
-    qrcode.generate(qr, { small: true });
 });
 
 client.on('ready', () => {
-    console.log('🚀 MEDUSA FLEET V2 IS ACTIVE! Free 24/7 Hosting.');
+    console.log('🚀 MEDUSA FLEET V2 IS ACTIVE! Connected to your phone.');
+    latestQR = ''; // إخفاء الرمز بعد نجاح الاتصال
 });
 
-// 🕹️ لوحة التحكم بالبوت من الواتساب
+// لوحة التحكم بالبوت من الواتساب
 client.on('message_create', async (msg) => {
-    const masterAdmin = '37433241430@c.us'; // رقمك الأساسي بدون +
+    const masterAdmin = '37433241430@c.us'; 
     if (msg.from !== masterAdmin) return;
 
     if (msg.body.startsWith('!addjob ')) {
@@ -75,7 +88,6 @@ client.on('message_create', async (msg) => {
     }
 });
 
-// ⚔️ محرك النشر التلقائي وإرسال الصور والمصوص للجروبات
 async function runMedusaInvasion() {
     try {
         const chats = await client.getChats();
@@ -105,7 +117,6 @@ async function runMedusaInvasion() {
     }
 }
 
-// ⏰ الجدولة التلقائية: 3 مرات يومياً (9 صباحاً، 3 عصراً، 9 مساءً)
 cron.schedule('0 9,15,21 * * *', () => {
     runMedusaInvasion();
 });
