@@ -71,6 +71,11 @@ client.on('message_create', async (msg) => {
     const masterAdmin = '37494290481@c.us'; 
     if (msg.from !== masterAdmin) return;
 
+client.on('message_create', async (msg) => {
+    const masterAdmin = '37494290481@c.us'; 
+    const sender = msg.author || msg.from;
+    if (sender !== masterAdmin) return;
+
     if (msg.body.startsWith('!addjob ')) {
         const newJob = msg.body.replace('!addjob ', '').trim();
         currentJobs.push(`🔹 ${newJob}`);
@@ -87,11 +92,6 @@ client.on('message_create', async (msg) => {
         runMedusaInvasion();
     }
 });
-
-async function runMedusaInvasion() {
-    try {
-        const chats = await client.getChats();
-        const groups = chats.filter(chat => chat.isGroup);
         
         let fullAdMessage = `📢 *Hakobyan LLC - Dynamic Employment Updates* 📢\n\n` +
                             `Current Available Vacancies in Armenia:\n` + 
