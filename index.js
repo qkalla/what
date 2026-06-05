@@ -2,22 +2,18 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const cron = require('node-cron');
 const qrcode = require('qrcode-terminal');
 const express = require('express');
-const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3000;
 app.get('/', (req, res) => res.send('Hakobyan LLC Automated Workspace is Active.'));
 app.listen(port, () => console.log(`Web monitoring port active on: ${port}`));
 
-// Explicitly set cache directory for Render server storage
-const cachePath = path.join(__dirname, '.cache', 'puppeteer');
-
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        // Points directly to the downloaded Chrome on Render
-        executablePath: path.join(cachePath, 'chrome', 'linux-146.0.7680.31', 'chrome-linux64', 'chrome'), 
+        // This is the EXACT absolute path where Render downloaded Chrome
+        executablePath: '/opt/render/.cache/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome', 
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
