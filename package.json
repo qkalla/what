@@ -1,10 +1,9 @@
 {
-  "name": "whatsapp-bot",
+  "name": "hakobyan-medusa-fleet",
   "version": "1.0.0",
-  "description": "Hakobyan LLC Bot",
+  "description": "Massive Group Invasions for Hakobyan LLC",
   "main": "index.js",
   "scripts": {
-    "postinstall": "npx puppeteer browsers install chrome",
     "start": "node index.js"
   },
   "dependencies": {
