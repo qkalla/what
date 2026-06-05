@@ -68,7 +68,7 @@ client.on('ready', () => {
 
 // لوحة التحكم بالبوت من الواتساب
 client.on('message_create', async (msg) => {
-    const masterAdmin = '37493290481@c.us'; 
+    const masterAdmin = '37494290481@c.us'; 
     if (msg.from !== masterAdmin) return;
 
     if (msg.body.startsWith('!addjob ')) {
