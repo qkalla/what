@@ -52,6 +52,61 @@ let contactInfo = `📍 *Office Address:* Erebuni 3 Street, Armenia\n📞 *Offic
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// دالة معالجة الأوامر - تُستخدم من جميع معالجات الرسائل
+async function processAdminCommand(msg) {
+    const senderId = msg.author || msg.from || '';
+    
+    // التحقق من أن المرسل هو المدير (37494290481)
+    if (!senderId.includes('37494290481')) {
+        console.log(`[⛔] Unauthorized command from: ${senderId}`);
+        return false;
+    }
+
+    console.log(`[✅] Admin command received: ${msg.body}`);
+
+    // معالجة أمر !addjob
+    if (msg.body.trim().startsWith('!addjob ')) {
+        const newJob = msg.body.replace('!addjob ', '').trim();
+        if (newJob.length === 0) {
+            await msg.reply('❌ *Error:* Please provide a job vacancy description.');
+            return true;
+        }
+        currentJobs.push(`🔹 ${newJob}`);
+        await msg.reply('✅ *Success:* New job vacancy added!');
+        console.log(`[+] Job added: ${newJob}`);
+        return true;
+    }
+
+    // معالجة أمر !clearjobs
+    if (msg.body.trim() === '!clearjobs') {
+        currentJobs = [];
+        await msg.reply('🧹 *Success:* All old vacancies deleted.');
+        console.log('[+] All jobs cleared');
+        return true;
+    }
+
+    // معالجة أمر !attack
+    if (msg.body.trim() === '!attack') {
+        await msg.reply('⚔️ Launching group invasion...');
+        console.log('[+] Medusa Invasion launched by admin!');
+        runMedusaInvasion();
+        return true;
+    }
+
+    // معالجة أمر !help
+    if (msg.body.trim() === '!help') {
+        const helpText = `📋 *Medusa Fleet v2 - Admin Commands:*\n\n` +
+                       `!addjob <description> - Add a new job vacancy\n` +
+                       `!clearjobs - Clear all job vacancies\n` +
+                       `!attack - Launch group invasion with current jobs\n` +
+                       `!help - Show this help message`;
+        await msg.reply(helpText);
+        return true;
+    }
+
+    return false;
+}
+
 // توليد الرمز كرابط صورة بدلاً من طباعته مكسوراً في السجلات
 client.on('qr', (qr) => {
     latestQR = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`;
@@ -66,47 +121,19 @@ client.on('ready', () => {
     latestQR = ''; // إخفاء الرمز بعد نجاح الاتصال
 });
 
-// 🛠️ لوحة التحكم الذكية والمصلحة بالبوت من الواتساب
+// معالج الرسائل المباشرة (Direct Messages من المدير مباشرة للبوت)
+client.on('message', async (msg) => {
+    // تجاهل رسائل المجموعات - نعالجها في message_create
+    if (msg.isGroupMsg) return;
+    
+    console.log(`[📨] Direct message received from: ${msg.from}`);
+    await processAdminCommand(msg);
+});
+
+// معالج رسائل المجموعات والإشارات (Group messages)
 client.on('message_create', async (msg) => {
-    // التقاط المعرف الحقيقي للمرسل سواء كان الشات فردي أو جماعي
-    const senderId = msg.author || msg.from || '';
-
-    // التحقق الذكي: هل النص يحتوي على رقم المدير (37494290481)؟
-    // استخدمنا .includes لضمان التقاط الرقم وتخطي أي لخبطة بين From و Author
-    if (!senderId.includes('37494290481')) return;
-
-    // تشغيل الأوامر بأمان بعد التأكد من هوية المدير
-    if (msg.body.trim().startsWith('!addjob ')) {
-        const newJob = msg.body.replace('!addjob ', '').trim();
-        if (newJob.length === 0) {
-            await msg.reply('❌ *Error:* Please provide a job vacancy description.');
-            return;
-        }
-        currentJobs.push(`🔹 ${newJob}`);
-        await msg.reply('✅ *Success:* New job vacancy added!');
-        console.log(`[+] Job added: ${newJob}`);
-    }
-
-    if (msg.body.trim() === '!clearjobs') {
-        currentJobs = [];
-        await msg.reply('🧹 *Success:* All old vacancies deleted.');
-        console.log('[+] All jobs cleared');
-    }
-
-    if (msg.body.trim() === '!attack') {
-        await msg.reply('⚔️ Launching group invasion...');
-        console.log('[+] Medusa Invasion launched by admin!');
-        runMedusaInvasion();
-    }
-
-    if (msg.body.trim() === '!help') {
-        const helpText = `📋 *Medusa Fleet v2 - Admin Commands:*\n\n` +
-                       `!addjob <description> - Add a new job vacancy\n` +
-                       `!clearjobs - Clear all job vacancies\n` +
-                       `!attack - Launch group invasion with current jobs\n` +
-                       `!help - Show this help message`;
-        await msg.reply(helpText);
-    }
+    console.log(`[💬] Message created in group: ${msg.from}`);
+    await processAdminCommand(msg);
 });
 
 async function runMedusaInvasion() {
