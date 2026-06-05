@@ -3,9 +3,6 @@ const cron = require('node-cron');
 const qrcode = require('qrcode-terminal');
 const express = require('express');
 
-// Set the puppeteer cache directory global variable before initializing
-process.env.PUPPETEER_CACHE_DIR = '/opt/render/.cache/puppeteer';
-
 const app = express();
 const port = process.env.PORT || 3000;
 app.get('/', (req, res) => res.send('Hakobyan LLC Automated Workspace is Active.'));
@@ -15,7 +12,7 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        // Removed explicit executablePath to let puppeteer auto-detect it using the cache variable above
+        // Let puppeteer pick up the Environment Variable automatically
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
